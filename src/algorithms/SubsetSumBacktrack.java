@@ -1,4 +1,4 @@
-package src;
+package src.algorithms;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -35,16 +35,5 @@ public class SubsetSumBacktrack {
         return false;
     }
 }
-
-//    public static void main(String[] args) {
-//        int[] arr = {5, 8, 2, 3}; // Given set of numbers
-//        int target = 13; // Target sum to be found
-//        int n = arr.length; // Length of the array
-//
-//        // Call the function to check if a subset exists
-//        if (!isSubsetSum(arr, n, target, new ArrayList<>())) {
-//            System.out.println("No subset found.");
-//        }
-//    }
 
 

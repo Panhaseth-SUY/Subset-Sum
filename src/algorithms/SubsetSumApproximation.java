@@ -1,8 +1,7 @@
-package src;
+package src.algorithms;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import java.util.Random;
 
 /**
  * Implementation of the subset-sum approximation (FPTAS) using iterative merge and trimming.
@@ -70,24 +69,5 @@ public class SubsetSumApproximation {
             }
         }
         return best;
-    }
-
-    // Example usage
-    public static void main(String[] args) {
-        Random random = new Random();
-        int setSize = 1000;
-        int maxValue = 100;
-
-        List<Integer> nums = new ArrayList<>();
-        for (int i = 0; i < setSize; i++) {
-            nums.add(random.nextInt(maxValue) + 1); // Generate random integers between 1 and maxValue
-        }
-
-        int target = 51263;
-        double epsilon = 0.001;
-
-        System.out.println("Random set: " + nums);
-        double result = approximateSubsetSum(nums, target, epsilon);
-        System.out.printf("Approximate subset sum ≤ %d: %.2f\n", target, result);
     }
 }
