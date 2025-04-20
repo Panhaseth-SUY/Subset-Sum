@@ -1,3 +1,4 @@
+package src;
 public class SubsetSumDP {
     public static boolean isSubsetSum(int[] nums, int target) {
         boolean[] dp = new boolean[target + 1];
