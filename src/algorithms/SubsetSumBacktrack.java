@@ -4,36 +4,40 @@ import java.util.List;
 
 public class SubsetSumBacktrack {
 
-    // Method to determine if a subset with the given sum exists
-    public static boolean isSubsetSum(int[] arr, int n, int target, List<Integer> subset) {
-        // If target sum is reached, return true and print the subset
+    // Method to determine the subset with the given sum
+    public static List<Integer> findSubsetSum(int[] arr, int n, int target) {
+        List<Integer> subset = new ArrayList<>();
+        return findSubsetSumHelper(arr, n, target, subset);
+    }
+
+    private static List<Integer> findSubsetSumHelper(int[] arr, int n, int target, List<Integer> subset) {
+        // If target sum is reached, return the subset
         if (target == 0) {
-            System.out.println("Subset found: " + subset);
-            return true;
+            return new ArrayList<>(subset);
         }
 
-        // If no elements left and target is not met, return false
+        // If no elements left and target is not met, return null
         if (n == 0) {
-            return false;
+            return null;
         }
 
         // Exclude the last element and recurse
-        if (isSubsetSum(arr, n - 1, target, new ArrayList<>(subset))) {
-            return true;
+        List<Integer> result = findSubsetSumHelper(arr, n - 1, target, new ArrayList<>(subset));
+        if (result != null) {
+            return result;
         }
 
         // Include the last element if it does not exceed the target and recurse
         if (arr[n - 1] <= target) {
             subset.add(arr[n - 1]);
-            if (isSubsetSum(arr, n - 1, target - arr[n - 1], new ArrayList<>(subset))) {
-                return true;
+            result = findSubsetSumHelper(arr, n - 1, target - arr[n - 1], new ArrayList<>(subset));
+            if (result != null) {
+                return result;
             }
             subset.remove(subset.size() - 1); // Backtrack
         }
 
-        // If no valid subset is found, return false
-        return false;
+        // If no valid subset is found, return null
+        return null;
     }
 }
-
-

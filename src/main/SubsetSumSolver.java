@@ -49,8 +49,8 @@ public class SubsetSumSolver {
                 case 1 -> {
                     System.out.println("\nBacktracking:");
                     long btStart = System.nanoTime();
-                    List<Integer> btResult = new ArrayList<>();
-                    if (SubsetSumBacktrack.isSubsetSum(nums.stream().mapToInt(i -> i).toArray(), nums.size(), target, btResult)) {
+                    List<Integer> btResult = SubsetSumBacktrack.findSubsetSum(nums.stream().mapToInt(i -> i).toArray(), nums.size(), target);
+                    if (btResult != null) {
                         System.out.println("A subset exists with the sum " + target + ": " + btResult);
                     } else {
                         System.out.println("No subset exists with the sum " + target);
@@ -77,9 +77,13 @@ public class SubsetSumSolver {
                     System.out.print("Enter the approximation epsilon value: ");
                     double epsilon = scanner.nextDouble();
                     long approxStart = System.nanoTime();
-                    double approxResult = SubsetSumApproximation.approximateSubsetSum(nums, target, epsilon);
+                    List<Integer> approxResult = SubsetSumApproximation.approximateSubsetSum(nums, target, epsilon);
                     long approxEnd = System.nanoTime();
-                    System.out.printf("Approximate subset sum ≤ %d: %.2f\n", target, approxResult);
+                    if (!approxResult.isEmpty()) {
+                        System.out.println("An approximate subset exists with the sum ≤ " + target + ": " + approxResult);
+                    } else {
+                        System.out.println("No approximate subset exists with the sum ≤ " + target);
+                    }
                     System.out.printf("Time taken: %.2f ms\n", (approxEnd - approxStart) / 1e6);
                 }
 
