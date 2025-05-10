@@ -1,90 +1,126 @@
 package src.algorithms;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
 
-/**
- * Implementation of the subset-sum approximation (FPTAS) using iterative merge and trimming.
- */
+import java.util.ArrayList;
+import java.util.List;
+
 public class SubsetSumApproximation {
 
-    /**
-     * Computes an approximate subset sum that is the largest sum ≤ target,
-     * within a factor of (1 - epsilon) of the optimal solution.
-     *
-     * @param nums    List of positive integers
-     * @param target  Target sum
-     * @param epsilon Approximation error tolerance (0 < epsilon < 1)
-     * @return the approximate best subset that produces the sum ≤ target
-     */
-    public static List<Integer> approximateSubsetSum(List<Integer> nums, int target, double epsilon) {
+    public static Result approximateSubsetSum(List<Integer> nums, int target, double epsilon) {
         int n = nums.size();
-        // δ controls trimming granularity
         double delta = epsilon / (2 * n);
 
-        // Initialize list of sums with only the empty subset
-        List<Double> sums = new ArrayList<>();
-        Map<Double, List<Integer>> subsets = new HashMap<>();
-        sums.add(0.0);
-        subsets.put(0.0, new ArrayList<>());
+        // Initialize list of sums and corresponding subsets
+        List<Integer> sums = new ArrayList<>();
+        List<Integer> subsets = new ArrayList<>();
+        sums.add(0);
+        subsets.add(0); // Empty subset for sum 0
+
+        int bestSum = 0;
+        int bestSubsetIndex = 0;
 
         // Iterate through each element
-        for (int num : nums) {
-            // Generate new sums by adding current number to all existing sums
-            List<Double> newSums = new ArrayList<>(sums.size());
-            Map<Double, List<Integer>> newSubsets = new HashMap<>();
-            for (double s : sums) {
-                double newSum = s + num;
-                newSums.add(newSum);
+        for (int elementIndex = 0; elementIndex < nums.size(); elementIndex++) {
+            int num = nums.get(elementIndex);
 
-                // Create a new subset by adding the current number
-                List<Integer> newSubset = new ArrayList<>(subsets.get(s));
-                newSubset.add(num);
-                newSubsets.put(newSum, newSubset);
+            // Generate new sums and subsets by adding the current number
+            List<Integer> newSums = new ArrayList<>();
+            List<Integer> newSubsets = new ArrayList<>();
+            for (int i = 0; i < sums.size(); i++) {
+                int newSum = sums.get(i) + num;
+                if (newSum <= target) { // Prune sums that exceed the target sum
+                    newSums.add(newSum);
+                    newSubsets.add(subsets.get(i) | (1 << elementIndex)); // Use elementIndex for bitmask
+                }
             }
 
-            // Merge old and new sums
-            List<Double> merged = new ArrayList<>(sums.size() + newSums.size());
-            merged.addAll(sums);
-            merged.addAll(newSums);
-            Collections.sort(merged);
+            // Merge old and new sums and subsets using two-pointer technique
+            List<Integer> mergedSums = new ArrayList<>();
+            List<Integer> mergedSubsets = new ArrayList<>();
+            int i = 0, j = 0;
+            while (i < sums.size() && j < newSums.size()) {
+                if (sums.get(i) < newSums.get(j)) {
+                    mergedSums.add(sums.get(i));
+                    mergedSubsets.add(subsets.get(i));
+                    i++;
+                } else {
+                    mergedSums.add(newSums.get(j));
+                    mergedSubsets.add(newSubsets.get(j));
+                    j++;
+                }
+            }
+            while (i < sums.size()) {
+                mergedSums.add(sums.get(i));
+                mergedSubsets.add(subsets.get(i));
+                i++;
+            }
+            while (j < newSums.size()) {
+                mergedSums.add(newSums.get(j));
+                mergedSubsets.add(newSubsets.get(j));
+                j++;
+            }
 
-            // Trim the merged list to remove values that are too close
-            List<Double> trimmed = new ArrayList<>();
-            Map<Double, List<Integer>> trimmedSubsets = new HashMap<>();
-            double last = -1.0;
-            for (double s : merged) {
-                if (trimmed.isEmpty() || s > last * (1 + delta)) {
-                    trimmed.add(s);
-                    trimmedSubsets.put(s, subsets.containsKey(s) ? subsets.get(s) : newSubsets.get(s));
+            // Trim the merged list
+            List<Integer> trimmedSums = new ArrayList<>();
+            List<Integer> trimmedSubsets = new ArrayList<>();
+            int last = -1;
+            for (int k = 0; k < mergedSums.size(); k++) {
+                int s = mergedSums.get(k);
+                if (trimmedSums.isEmpty() || s > last * (1 + delta)) {
+                    trimmedSums.add(s);
+                    trimmedSubsets.add(mergedSubsets.get(k));
                     last = s;
+
+                    // Update best sum and subset during trimming
+                    if (s <= target && s > bestSum) {
+                        bestSum = s;
+                        bestSubsetIndex = mergedSubsets.get(k);
+                    }
                 }
             }
 
-            // Optionally prune sums that exceed the target to keep list smaller
-            List<Double> pruned = new ArrayList<>();
-            Map<Double, List<Integer>> prunedSubsets = new HashMap<>();
-            for (double s : trimmed) {
-                if (s <= target) {
-                    pruned.add(s);
-                    prunedSubsets.put(s, trimmedSubsets.get(s));
-                }
-            }
-
-            sums = pruned;
-            subsets = prunedSubsets;
+            // Update sums and subsets with the trimmed lists
+            sums = trimmedSums;
+            subsets = trimmedSubsets;
         }
 
-        // Find the closest sum ≤ target
-        double best = 0.0;
-        for (double s : sums) {
-            if (s <= target && s > best) {
-                best = s;
+        // Decode the best subset from its index representation
+        List<Integer> bestSubset = decodeSubset(bestSubsetIndex, nums);
+
+        return new Result(bestSubset, bestSum);
+    }
+
+    // Helper method to decode a subset from its index representation
+    private static List<Integer> decodeSubset(int subsetIndex, List<Integer> nums) {
+        List<Integer> subset = new ArrayList<>();
+        for (int i = 0; i < nums.size(); i++) {
+            if ((subsetIndex & (1 << i)) != 0) { // Check if the i-th bit is set
+                subset.add(nums.get(i));
             }
         }
+        return subset;
+    }
 
-        return subsets.get(best);
+    // Helper class to store the result
+    public static class Result {
+        private final List<Integer> subset;
+        private final int sum;
+
+        public Result(List<Integer> subset, int sum) {
+            this.subset = subset;
+            this.sum = sum;
+        }
+
+        public List<Integer> getSubset() {
+            return subset;
+        }
+
+        public int getSum() {
+            return sum;
+        }
+
+        @Override
+        public String toString() {
+            return subset + ", Sum: " + sum;
+        }
     }
 }
