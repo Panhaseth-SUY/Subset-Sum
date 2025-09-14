@@ -1,9 +1,10 @@
 package src.main;
 
-import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Random;
 import java.util.Scanner;
+import java.util.Set;
 import src.algorithms.SubsetSumApproximation;
 import src.algorithms.SubsetSumBacktrack;
 import src.algorithms.SubsetSumDP;
@@ -22,13 +23,17 @@ public class SubsetSumSolver {
         System.out.print("Enter the maximum value for elements in the set: ");
         int maxValue = scanner.nextInt();
 
+        if (maxValue < setSize) {
+            throw new IllegalArgumentException(String.format("Not enough values to create a set of size %d", setSize));
+        }
+
         System.out.print("Enter the target sum: ");
         int target = scanner.nextInt();
 
-        List<Integer> nums = new ArrayList<>();
+        Set<Integer> nums = new HashSet<>();
 
-        // Generate a random set of integers
-        for (int i = 0; i < setSize; i++) {
+        // Generate a random set of unique integers
+        while (nums.size() < setSize) {
             nums.add(random.nextInt(maxValue) + 1); // Generate random integers between 1 and maxValue
         }
 
@@ -77,13 +82,9 @@ public class SubsetSumSolver {
                     System.out.print("Enter the approximation epsilon value: ");
                     double epsilon = scanner.nextDouble();
                     long approxStart = System.nanoTime();
-                    List<Integer> approxResult = SubsetSumApproximation.approximateSubsetSum(nums, target, epsilon);
+                    Object approxResult = SubsetSumApproximation.approximateSubsetSum(nums.stream().toList(), target, epsilon);
                     long approxEnd = System.nanoTime();
-                    if (!approxResult.isEmpty()) {
-                        System.out.println("An approximate subset exists with the sum ≤ " + target + ": " + approxResult);
-                    } else {
-                        System.out.println("No approximate subset exists with the sum ≤ " + target);
-                    }
+                    System.out.println("An approximate subset sum is found: " + approxResult);
                     System.out.printf("Time taken: %.2f ms\n", (approxEnd - approxStart) / 1e6);
                 }
 
